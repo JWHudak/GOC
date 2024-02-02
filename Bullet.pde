@@ -1,7 +1,7 @@
 class Bullet extends Sprite {
     
     Bullet(float x, float y, PVector velocity, int team) {
-        super(x, y, 10, 10); // invoke parent constructor
+        super(x, y, 40, 40); // invoke parent constructor
         vel = velocity;
         this.team = team;
     }

@@ -4,6 +4,7 @@ class SpriteManager{
     ArrayList<Sprite> active = new ArrayList<Sprite>();
     ArrayList<Sprite> destroyed = new ArrayList<Sprite>();
     ArrayList<Sprite> platform = new ArrayList<Sprite>();
+    ArrayList<Sprite> floating = new ArrayList<Sprite>();
     
     SpriteManager() {
         player = new Player(width / 2, height - 100);
@@ -18,6 +19,10 @@ class SpriteManager{
         platform.add(obj);
     }
     
+    void spawnF(Sprite obj) {
+        floating.add(obj);
+    }    
+    
     void spawn(Sprite obj) {
         active.add(obj);
     }
@@ -25,6 +30,7 @@ class SpriteManager{
     void manage() {
         moveEverything();
         checkFloor();
+        checkPlatform();
         checkCollisions();    
         bringOutTheDead();
         drawEverything();
@@ -36,13 +42,18 @@ class SpriteManager{
         }
         for(int i = platform.size() - 1; i >= 0; i--) {
             platform.get(i).update();
-        }    
+        }
+        for(int i = floating.size() - 1; i >= 0; i--) {
+            floating.get(i).update();
+        }
     }
     
     void drawEverything() {
         for (Sprite s : active)
             s.display();
         for (Sprite s : platform)
+            s.display();
+        for (Sprite s : floating)
             s.display();
     }
     
@@ -71,12 +82,83 @@ class SpriteManager{
       }  
     }
     
+    void checkPlatform() {
+      for(Sprite x : floating) {
+        if(collisionTop(player, x)) {
+          player.platformTopTrue();
+          player.platformBottomFalse();
+          break;
+        }
+        else if(collisionBottom(player, x)) {
+          player.platformTopFalse();
+          player.platformBottomTrue();
+          break;
+        }  
+        else {
+          player.platformTopFalse();
+          player.platformBottomFalse();
+        } 
+      } 
+      for(Sprite x : floating) {
+        if(collisionLeft(player, x)) {
+          player.platformLeftTrue();
+          player.platformRightFalse();
+          break;
+        }
+        else if(collisionRight(player, x)) {
+          player.platformLeftFalse();
+          player.platformRightTrue();
+          break;
+        }  
+        else {
+          player.platformLeftFalse();
+          player.platformRightFalse();
+        } 
+      }
+    }
+    
     void bringOutTheDead() {
         for (int i = 0; i < destroyed.size(); i++) {
             Sprite target = destroyed.get(i);
             active.remove(target);
             destroyed.remove(target);
         }
+    }
+    
+    boolean collisionLeft(Sprite a, Sprite b) {
+        // assumes equal w and h
+        float w1 = a.size.x / 2.0;
+        float l1 = a.size.y / 2.0;
+        float w2 = b.size.x / 2.0;
+        float l2 = b.size.y / 2.0;
+        return approximatelyEqual(w1 + w2, abs(a.pos.x - b.pos.x), 5.0) && l1 + l2 > abs(a.pos.y - b.pos.y) && a.pos.x < b.pos.x - w2;
+    }
+    
+    boolean collisionRight(Sprite a, Sprite b) {
+        // assumes equal w and h
+        float w1 = a.size.x / 2.0;
+        float l1 = a.size.y / 2.0;
+        float w2 = b.size.x / 2.0;
+        float l2 = b.size.y / 2.0;
+        return approximatelyEqual(w1 + w2, abs(a.pos.x - b.pos.x), 5.0) && l1 + l2 > abs(a.pos.y - b.pos.y) && a.pos.x > b.pos.x + w2;
+    }
+    
+    boolean collisionBottom(Sprite a, Sprite b) {
+        // assumes equal w and h
+        float w1 = a.size.x / 2.0;
+        float l1 = a.size.y / 2.0;
+        float w2 = b.size.x / 2.0;
+        float l2 = b.size.y / 2.0;
+        return w1 + w2 > abs(a.pos.x - b.pos.x) && approximatelyEqual(l1 + l2, abs(a.pos.y - b.pos.y), 5.0) && a.pos.y > b.pos.y;
+    }
+    
+    boolean collisionTop(Sprite a, Sprite b) {
+        // assumes equal w and h
+        float w1 = a.size.x / 2.0;
+        float l1 = a.size.y / 2.0;
+        float w2 = b.size.x / 2.0;
+        float l2 = b.size.y / 2.0;
+        return w1 + w2 > abs(a.pos.x - b.pos.x) && approximatelyEqual(l1 + l2, abs(a.pos.y - b.pos.y), 5.0) && a.pos.y < b.pos.y;
     }
     
     boolean collision(Sprite a, Sprite b) {
@@ -86,5 +168,11 @@ class SpriteManager{
         float w2 = b.size.x / 2.0;
         float l2 = b.size.y / 2.0;
         return w1 + w2 >= abs(a.pos.x - b.pos.x) && l1 + l2 >= abs(a.pos.y - b.pos.y);
+    }
+    
+    public boolean approximatelyEqual(float desiredValue, float actualValue, float tolerancePercentage) {
+      float diff = Math.abs(desiredValue - actualValue);         //  1000 - 950  = 50
+      float tolerance = tolerancePercentage/100 * desiredValue;  //  20/100*1000 = 200
+      return diff < tolerance;                                   //  50<200      = true
     }
 }

@@ -1,5 +1,7 @@
 class Player extends Sprite {
     boolean left, right, up, down;
+    float acceleration;
+    float currentSpeed;
     
     Player(float x, float y) {
         // super refers to the parent
@@ -7,14 +9,23 @@ class Player extends Sprite {
         super(x, y, 40, 40); // in this case, Sprite
         team = 1;
     }
-
+     
     @Override
     void update() {
         float speed = 1.2;
+        currentSpeed = 0;
+        checkFloor();
         if (left)  vel.add(new PVector( -speed, 0));
         if (right) vel.add(new PVector(speed, 0));
-        if (up)    vel.add(new PVector(0, -speed));
+        if (up && floor) {
+          vel.add(new PVector(0, -speed - 37.8));
+          currentSpeed = -speed - 7.8;
+        }
         if (down)  vel.add(new PVector(0, speed));
+        if (!floor) {
+          vel.add(new PVector(0, currentSpeed + acceleration));
+          acceleration += 0.3;
+        }
         // update the position by velocity
         pos.add(vel);
 
@@ -22,7 +33,7 @@ class Player extends Sprite {
         if(pos.x < 0 + size.x/2) pos.x = size.x/2;
         if(pos.x > width - size.x/2) pos.x = width - size.x/2;
         if(pos.y < 0 + size.y/2) pos.y = size.y/2;
-        if(pos.y > height - size.y/2) pos.y = height-size.y/2;
+        if(pos.y > height - size.y/2) pos.y = height - size.y/2;
 
         // always try to decelerate
         vel.mult(0.9);
@@ -31,12 +42,18 @@ class Player extends Sprite {
     @Override
     void display() {
         fill(200, 0, 200);
-        ellipse(pos.x, pos.y, size.x, size.y);
+        rect(pos.x, pos.y, size.x, size.y);
     }
 
     @Override
     void handleCollision() {
         // don't die.
+    }
+    
+    void checkFloor()  {
+        if(floor == true) {
+          acceleration = 0;
+        }
     }
 
     void keyUp() {

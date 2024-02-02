@@ -58,8 +58,11 @@ class SpriteManager {
     
     boolean collision(Sprite a, Sprite b) {
         // assumes equal w and h
-        float r1 = a.size.x / 2.0;
-        float r2 = b.size.x / 2.0;
-        return r1 + r2 > dist(a.pos.x, a.pos.y, b.pos.x, b.pos.y);
+        float w1 = a.size.x / 2.0;
+        float l1 = a.size.y / 2.0;
+        float w2 = b.size.x / 2.0;
+        float l2 = b.size.y / 2.0;
+        return abs(a.pos.x - b.pos.x) < w1 + w2 && abs(a.pos.y - b.pos.y) < l1 + l2;
+        
     }
 }
